@@ -111,6 +111,7 @@ class ArmConfiguration:
     
     def moveToConfiguration(self, arm_configuration_name):
         configname = "/arm_configurations/" + arm_configuration_name
+        print "moveto ", configname
         if rospy.has_param(configname):
             config = rospy.get_param(configname);
             self.moveToPosition(config)

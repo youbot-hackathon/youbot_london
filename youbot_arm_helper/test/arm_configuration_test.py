@@ -47,10 +47,10 @@ if __name__ == "__main__":
     
     an = ArmConfiguration()
     
-    rospy.sleep(5.0)
+    #rospy.sleep(5.0)
     
     print "moveto config"
-    an.moveToConfiguration("zeroposition")
+    #an.moveToConfiguration("zeroposition")
     
     '''
     an.moveToConfiguration("pregrasp_front_init")
@@ -80,7 +80,23 @@ if __name__ == "__main__":
     
     an.moveToConfiguration("zeroposition")
     '''
-    an.moveToConfiguration("initposition")
+    #an.moveToConfiguration("initposition")
+    
+    an.moveToConfiguration("kinect_right_init")
+    an.moveToConfiguration("kinect_right")
+    rospy.sleep(2.0)
+    #an.moveToConfiguration("kinect_right_init")
+  
+    #an.moveToConfiguration("kinect_left_init")
+    #an.moveToConfiguration("kinect_left")
+   #rospy.sleep(1.0)
+    an.moveToConfiguration("kinect_right_init")
+    
+    an.moveToConfiguration("kinect_left_init")
+    an.moveToConfiguration("kinect_left")
+    rospy.sleep(2.0)
+    an.moveToConfiguration("kinect_left_init")
+   # an.moveToConfiguration("zeroposition")
     
     '''
     x = 0.024 + 0.033
