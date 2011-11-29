@@ -3,13 +3,12 @@
 	
 	<include file="$(find youbot_oodl)/launch/youbot_oodl_driver.launch" />
 	<include file="$(find youbot_oodl)/launch/youbot_joint_state_publisher.launch" />
-	<include file="$(find youbot_camera)/launch/kinect_tilt.launch" />
-	<include file="$(find youbot_camera)/launch/kinect_tilt_publisher.launch" />
 	<include file="$(find youbot_scenarios)/london/launch/perception.launch" />
 	
 	<include file="$(find youbot_scenarios)/london/launch/arm_configurations.launch" />
 	
-	<include file="$(find youbot_arm_navigation)/ros/launch/arm_navigation.launch" />
+	<include file="$(find youbot_arm_navigation)/ros/launch/planning_environment.launch" />
+	<include file="$(find youbot_arm_navigation)/ros/launch/constraint_aware_kinematics.launch" />
 	<include file="$(find youbot_joint_trajectory_action)/ros/launch/youbot_joint_trajectory_action.launch" />
 	
 	<include file="$(find youbot_navigation_common)/launch/base_front_hokuyo_node.launch" />
