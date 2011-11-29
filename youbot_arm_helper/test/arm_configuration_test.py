@@ -52,6 +52,35 @@ if __name__ == "__main__":
     print "moveto config"
     #an.moveToConfiguration("zeroposition")
     
+    
+    an.moveGripperOpen()
+    
+    rospy.sleep(1.0)
+    
+    an.moveGripperClose()
+    
+    rospy.sleep(1.0)
+    
+    an.moveGripper(0.0)
+    
+    rospy.sleep(1.0)
+    
+    an.moveGripper(1.0)
+    
+    rospy.sleep(1.0)
+    
+    an.moveGripperDirect(0.0, 1.0)
+    
+    rospy.sleep(1.0)
+    an.moveGripperDirect(1.0, 0.0)
+    
+    rospy.sleep(1.0)
+    an.moveGripperOpeningDistance(2.0)
+    
+    rospy.sleep(1.0)
+    an.moveGripperOpeningDistance(0.0)
+    
+
     '''
     an.moveToConfiguration("pregrasp_front_init")
     an.moveToConfiguration("pregrasp_front")
@@ -82,6 +111,7 @@ if __name__ == "__main__":
     '''
     #an.moveToConfiguration("initposition")
     
+    '''
     an.moveToConfiguration("kinect_right_init")
     an.moveToConfiguration("kinect_right")
     rospy.sleep(2.0)
@@ -98,6 +128,7 @@ if __name__ == "__main__":
     an.moveToConfiguration("kinect_left_init")
    # an.moveToConfiguration("zeroposition")
     
+    '''
     '''
     x = 0.024 + 0.033
     y = 0

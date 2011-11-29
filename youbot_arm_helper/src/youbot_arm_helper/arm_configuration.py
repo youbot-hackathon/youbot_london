@@ -32,11 +32,15 @@ class ArmConfiguration:
         self.ciks = rospy.ServiceProxy('/youbot_arm_kinematics/get_constraint_aware_ik', kinematics_msgs.srv.GetConstraintAwarePositionIK)
         rospy.loginfo("Service 'get_constraint_aware_ik' is ready")
 
+        
+        self.gripper_publisher = rospy.Publisher('/arm_1/gripper_controller/position_command', JointPositions)
+        
         self.armclient = actionlib.SimpleActionClient("/arm_1/arm_controller/joint_trajectory_action", 
                                           control_msgs.msg.FollowJointTrajectoryAction)
         print "waiting for action server"
         self.armclient.wait_for_server()
     
+        
     #callback function: when a joint_states message arrives, save the values
     def _joint_states_callback(self, msg):
         for k in range(5):
@@ -121,3 +125,54 @@ class ArmConfiguration:
             return False
         
     
+    def _createGripperJointPositions(self, left, right):
+        jp = JointPositions()
+
+        jv1 = JointValue()
+        jv1.joint_uri = "gripper_finger_joint_l"
+        jv1.value = left
+        jv1.unit = "m"
+
+        jv2 = JointValue()
+        jv2.joint_uri = "gripper_finger_joint_r"
+        jv2.value = right
+        jv2.unit = "m"
+
+        p = Poison()
+        jp.poisonStamp = p
+
+        jp.positions = [jv1, jv2] #list
+
+        return jp
+    
+    def _createGripperJointPositionsSym(self, value):
+        return self._createGripperJointPositions(value, value)
+        
+    def moveGripperOpen(self):
+        print "moveGripperOpen"
+        jp = self._createGripperJointPositionsSym(0.0115)
+        self.gripper_publisher.publish(jp)
+     
+    def moveGripperClose(self):
+        print "moveGripperClose"
+        jp = self._createGripperJointPositionsSym(0.00)
+        self.gripper_publisher.publish(jp)
+        
+    '''
+    percentave=0.0 => gripper close
+    percentage=1.0 => gripper open  
+    '''
+    def moveGripper(self, percentage):
+        print "moveGripper(", percentage,")"
+        jp = self._createGripperJointPositionsSym(0.0115 * percentage)
+        self.gripper_publisher.publish(jp)   
+        
+    def moveGripperOpeningDistance(self, distance):
+        print "moveGripperOpeningDistance(", distance,")"
+        jp = self._createGripperJointPositionsSym(distance / 2.0)
+        self.gripper_publisher.publish(jp)       
+    
+    def moveGripperDirect(self, left, right):
+        print "moveGripperOpeningDistance(", left,",", right,")"
+        jp = self._createGripperJointPositions(left, right)
+        self.gripper_publisher.publish(jp) 
