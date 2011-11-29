@@ -1,0 +1,9 @@
+bin/
+build/
+lib
+.project
+.pydevproject
+.project
+.svn
+!.gitignore
+*.pyc
