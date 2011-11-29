@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+	
+	<include file="$(find youbot_oodl)/launch/youbot_oodl_driver.launch" />
+	<include file="$(find youbot_oodl)/launch/youbot_joint_state_publisher.launch" />
+	<include file="$(find youbot_camera)/launch/kinect_tilt.launch" />
+	<include file="$(find youbot_camera)/launch/kinect_tilt_publisher.launch" />
+	<include file="$(find openni_camera)/launch/openni_node.launch" />
+	<include file="$(find youbot_scenarios)/london/launch/perception.launch" />
+	
+	<include file="$(find youbot_scenarios)/london/launch/arm_configurations.launch" />
+
+</launch>
