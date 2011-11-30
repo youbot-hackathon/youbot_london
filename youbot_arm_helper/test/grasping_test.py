@@ -16,6 +16,7 @@ from brics_actuator.msg import JointPositions, JointValue, Poison
 
 import youbot_arm_helper.arm_configuration
 from youbot_arm_helper.arm_configuration import ArmConfiguration
+from tf import transformations
 
 def createPose(x, y, z, roll, pitch, yaw):
         pose = geometry_msgs.msg.PoseStamped()
@@ -46,15 +47,7 @@ if __name__ == "__main__":
     time.sleep(0.5)
     
     an = ArmConfiguration()
-    
-    #rospy.sleep(5.0)
-    
-    print "moveto config"
-    #an.moveToConfiguration("zeroposition")
 
-    
-    #an.moveToConfiguration("pregrasp_front_init")
-    
     #front center
     targetPose_front = an._createPose(0.27, 0.0, 0.05, 0, math.pi, 0)
     
@@ -65,23 +58,17 @@ if __name__ == "__main__":
     #targetPose_front = an._createPose(0.27, 0.08, 0.05, 0, math.pi, 0)
     
     
-    #back center
-    targetPose_back = an._createPose(0.033 + 0.024 - 0.26, 0, 0.104, 0, -math.pi + 0.05, 0)
+    #end begin
+    #targetPose_back = an._createPose(0.033 + 0.024 - 0.24, -0.03, 0.115, 0, -math.pi + 0.2, 0)
     
-    #targetPose_back = an._createPose(0.033 + 0.024 - 0.26, 0.05, 0.05, 0, -math.pi + 0.05, 0)
+    #end middle
+    targetPose_back = an._createPose(0.033 + 0.024 - 0.35, 0.00, 0.115, 0, -math.pi + 0.9, 0)
+      
     
-    
-    #an.moveToConfiguration("pregrasp_front")
-
-    #an.moveToPoseAndReleaseFromTop(targetPose_back)
-        
-    
-    while (True0):
+    while (True):
        # an.moveToConfiguration("zeroposition")
 
         an.moveToConfiguration("pregrasp_front")
-        an.moveGripperOpen()
-        rospy.sleep(1.0)
         
         an.moveToPoseAndGraspFromTop(targetPose_front)        
         
