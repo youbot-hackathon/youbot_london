@@ -69,19 +69,19 @@ if __name__ == "__main__":
     
     rospy.sleep(1.0)
     
-    an.moveGripperDirect(0.0, 1.0)
+    an.moveGripperDirect(0.0, 0.0115)
     
-    rospy.sleep(1.0)
-    an.moveGripperDirect(1.0, 0.0)
+    rospy.sleep(0.0115)
+    an.moveGripperDirect(0.0115, 0.0)
     
-    rospy.sleep(1.0)
-    an.moveGripperOpeningDistance(2.0)
+    rospy.sleep(0.0115)
+    an.moveGripperOpeningDistance(0.0115*2)
     
-    rospy.sleep(1.0)
+    rospy.sleep(0.0115)
     an.moveGripperOpeningDistance(0.0)
-    
-
     '''
+
+    
     an.moveToConfiguration("pregrasp_front_init")
     an.moveToConfiguration("pregrasp_front")
     
