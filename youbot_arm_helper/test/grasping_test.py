@@ -49,56 +49,105 @@ if __name__ == "__main__":
     an = ArmConfiguration()
 
     #front center
-    targetPose_front = an._createPose(0.27, 0.0, 0.05, 0, math.pi, 0)
+    targetPose_front_01 = an._createPose(0.27, 0.0, 0.05, 0, math.pi, math.pi / 2)
     
     #front left
-    #targetPose_front = an._createPose(0.27, 0.08, 0.05, 0, math.pi, 0)
+    targetPose_front_02 = an._createPose(0.27, 0.08, 0.05, 0, math.pi, math.pi / 2)
     
     #front right
-    #targetPose_front = an._createPose(0.27, 0.08, 0.05, 0, math.pi, 0)
+    targetPose_front_03 = an._createPose(0.27, -0.08, 0.05, 0, math.pi, math.pi / 2)
     
     
     #end begin
-    #targetPose_back = an._createPose(0.033 + 0.024 - 0.24, -0.03, 0.115, 0, -math.pi + 0.2, 0)
+    targetPose_back_01 = an._createPose(0.033 + 0.024 - 0.235, 0.0, 0.105, 0, -math.pi + 0.2, 0)
     
     #end middle
-    targetPose_back = an._createPose(0.033 + 0.024 - 0.35, 0.00, 0.115, 0, -math.pi + 0.9, 0)
+    targetPose_back_02 = an._createPose(0.033 + 0.024 - 0.28, 0.0, 0.105, 0, -math.pi + 0.3, 0)
+    #targetPose_back = an._createPose(0.033 + 0.024 - 0.39, 0.00, 0.07, 0, -math.pi + 0.4, 0)
       
-    
+    #an.moveToConfiguration("pregrasp_back")
+        
+    #an.moveToPoseAndGraspFromTop(targetPose_back) 
+        
     while (True):
        # an.moveToConfiguration("zeroposition")
 
         an.moveToConfiguration("pregrasp_front")
         
-        an.moveToPoseAndGraspFromTop(targetPose_front)        
+        an.moveToPoseAndGraspFromTop(targetPose_front_01)        
         
         an.moveToConfiguration("pregrasp_front_init")        
-        an.moveToConfiguration("zeroposition")
+        #an.moveToConfiguration("zeroposition")
     
         an.moveToConfiguration("pregrasp_back_init")
         
         an.moveToConfiguration("pregrasp_back")
                 
-        an.moveToPoseAndReleaseFromTop(targetPose_back)
+        an.moveToPoseAndReleaseFromTop(targetPose_back_01)
+        
+        
+        an.moveToConfiguration("pregrasp_back")
+        
+        an.moveToConfiguration("pregrasp_back_init")
+         
+         
+         
+        an.moveToConfiguration("pregrasp_front")
+        
+        an.moveToPoseAndGraspFromTop(targetPose_front_02)        
+        
+        an.moveToConfiguration("pregrasp_front_init")        
+        
         
         an.moveToConfiguration("pregrasp_back_init")
         
         an.moveToConfiguration("pregrasp_back")
                 
-        an.moveToPoseAndGraspFromTop(targetPose_back)
-               
+        an.moveToPoseAndReleaseFromTop(targetPose_back_02)
+        
+        
+        an.moveToConfiguration("pregrasp_back")
+         
         an.moveToConfiguration("pregrasp_back_init")
+        
 
-        an.moveToConfiguration("zeroposition")
+        #an.moveToConfiguration("zeroposition")
 
         an.moveToConfiguration("pregrasp_front_init")
         
         an.moveToConfiguration("pregrasp_front")
         
-        an.moveToPoseAndReleaseFromTop(targetPose_front)
+        an.moveToPoseAndGraspFromTop(targetPose_front_03)
         
-        an.moveToConfiguration("pregrasp_front_init")
         
-        an.moveToConfiguration("zeroposition")
-
+        
+        an.moveToConfiguration("pregrasp_front")
+        
+        an.moveToPoseAndReleaseFromTop(targetPose_front_01)
+        
+        
+        an.moveToConfiguration("pregrasp_back_init")
+        
+        an.moveToConfiguration("pregrasp_back")
+                
+        an.moveToPoseAndGraspFromTop(targetPose_back_02)
+        
+        an.moveToConfiguration("pregrasp_front")
+        
+        an.moveToPoseAndReleaseFromTop(targetPose_front_02)
+        
+        an.moveToConfiguration("pregrasp_front")
+        
+        
+        an.moveToConfiguration("pregrasp_back_init")
+        
+        an.moveToConfiguration("pregrasp_back")
+                
+        an.moveToPoseAndGraspFromTop(targetPose_back_01)
+        
+        an.moveToConfiguration("pregrasp_front")
+        
+        an.moveToPoseAndReleaseFromTop(targetPose_front_03)
+        
+        an.moveToConfiguration("pregrasp_front")
         
