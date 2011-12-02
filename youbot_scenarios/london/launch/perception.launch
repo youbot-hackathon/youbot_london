@@ -8,7 +8,7 @@
 	<node name="poseEstimator6D_red" pkg="tower_of_hanoi_sdk" type="poseEstimator6D"
 		args="3 3 $(find youbot_scenarios)/london/config/yellow.cfg
 		$(find youbot_scenarios)/london/config/red.cfg
-		$(find youbot_scenarios)/london/config/green.cfg yello red greed" />
+		$(find youbot_scenarios)/london/config/green.cfg yellow red green" />
 	
 	<node name="youbot_3d_world_model" pkg="tower_of_hanoi_sdk" type="worldModel"/>
 
