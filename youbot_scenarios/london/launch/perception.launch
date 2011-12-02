@@ -5,7 +5,7 @@
 	<include file="$(find openni_camera)/launch/openni_node.launch" />
 	<include file="$(find tower_of_hanoi_sdk)/launch/PositionDetection.launch" />
 	
-	<node name="poseEstimator6D" pkg="tower_of_hanoi_sdk" type="poseEstimator6D" args="1 2 $(find youbot_scenarios)/london/config/yellow.cfg yellow" />
+	<node name="poseEstimator6D" pkg="tower_of_hanoi_sdk" type="poseEstimator6D" args="1 2 $(find youbot_scenarios)/london/config/red.cfg red" />
 	
 	<node name="youbot_3d_world_model" pkg="tower_of_hanoi_sdk" type="worldModel"/>
 
