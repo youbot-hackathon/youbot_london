@@ -72,13 +72,15 @@ class approach_pose(smach.State):
 
 
 class find_object(smach.State):
-	def __init__(self):
+	def __init__(self, color):
 		smach.State.__init__(self, outcomes=['success', 'no_object'], 
 									output_keys=['grasp_position'])
 		
 		global tf_listener
 		self.move_arm = arm_configuration.ArmConfiguration(tf_listener)
 		self.object_list_srv = rospy.ServiceProxy('/youbot_3d_world_model/getSceneObjects', tower_of_hanoi_sdk.srv.GetSceneObjects)
+		
+		self.color = color
 	
 	def execute(self, userdata):
 		self.move_arm.moveToConfiguration("zeroposition")
@@ -90,51 +92,69 @@ class find_object(smach.State):
 		attrib.key = "shapeType"
 		attrib.value = "Box"
 		attrib.key = "color"
-		attrib.value = "red"
+		attrib.value = self.color
 		req = tower_of_hanoi_sdk.srv.GetSceneObjectsRequest()
 		req.attributes.append(attrib)
 		
 		rospy.sleep(3.0)
 		
-		resp = self.object_list_srv(req)
+		x = 0.0
+		y = 0.0
+		z = 0.0
+		object_found = False
+		length = 1
+		for k in range(length):
+			resp = self.object_list_srv(req)
+			
+			print len(resp.results)
+			
+			min_dist = 1000.0
+			min_index = -1
+			
+			for i in range(len(resp.results)):
+				t = resp.results[i].transform.transform.translation
+				dist = math.sqrt((t.x * t.x) + (t.y * t.y) + (t.z * t.z))
+				
+				if ((dist <= min_dist) and (dist >= 0.6)):
+					min_dist = dist
+					min_index = i
+			
+			if (min_index != -1):
+				print resp.results[min_index]
+				object_found = True
+				t = resp.results[min_index].transform.transform.translation
+				x += t.x
+				y += t.y
+				z += t.z
+			
+			rospy.sleep(0.2)
 		
-		print len(resp.results)
 		
-		min_dist = 1000.0
-		min_index = -1
+		global tf_listener
 		
-		for i in range(len(resp.results)):
-			t = resp.results[i].transform.transform.translation
-			dist = math.sqrt((t.x * t.x) + (t.y * t.y) + (t.z * t.z))
-			
-			if ((dist <= min_dist) and (dist >= 0.6)):
-				min_dist = dist
-				min_index = i
+		pose = geometry_msgs.msg.PoseStamped()
+		pose.header.frame_id = resp.results[min_index].transform.header.frame_id
+		pose.header.stamp = rospy.Time.now() - rospy.Duration(0.5)
+		pose.pose.position.x = x / length
+		pose.pose.position.y = y / length
+		pose.pose.position.z = z / length
+		pose.pose.orientation.x = 0
+		pose.pose.orientation.y = 0
+		pose.pose.orientation.z = 0
+		pose.pose.orientation.w = 1
 		
-		if (min_index != -1):
-			print resp.results[min_index]
-			
-			global tf_listener
-			
-			pose = geometry_msgs.msg.PoseStamped()
-			pose.header = resp.results[min_index].transform.header
-			pose.header.stamp -= rospy.Duration(0.5)
-			pose.pose.position = resp.results[min_index].transform.transform.translation
-			pose.pose.orientation = resp.results[min_index].transform.transform.rotation
-			
-			base_pose = tf_listener.transformPose("base_link", pose)
-			userdata.grasp_position = base_pose
-			
-			print base_pose
-			
-			result = 'success'
-		else:
-			result = 'no_object'
+		base_pose = tf_listener.transformPose("base_link", pose)
+		userdata.grasp_position = base_pose
+		
+		print base_pose
 		
 		self.move_arm.moveToConfiguration("kinect_left_init")
 		self.move_arm.moveToConfiguration("zeroposition")
 		
-		return result
+		if (object_found):
+			return "success"
+		else:
+			return "no_object"
 
 
 
@@ -203,8 +223,8 @@ class grasp_object(smach.State):
 	def execute(self, userdata):
 		self.move_arm.moveGripperOpen()
 		self.move_arm.moveToConfiguration("zeroposition")
-		self.move_arm.moveToConfiguration("pregrasp_front_init")
-		self.move_arm.moveToConfiguration("pregrasp_front")
+		#self.move_arm.moveToConfiguration("pregrasp_front_init")
+		#self.move_arm.moveToConfiguration("pregrasp_front")
 		
 		point = userdata.grasp_position.pose.position
 		target_pose = self.move_arm._createPose(point.x, point.y + 0.015, point.z + 0.08, 0, math.pi, 0)
@@ -221,6 +241,35 @@ class grasp_object(smach.State):
 		self.move_arm.moveToConfiguration("zeroposition")
 		
 		return "success"
+
+
+class release_object(smach.State):
+	
+	def __init__(self, position):
+		smach.State.__init__(self, outcomes=['success', 'failed'])
+		self.position = position
+		
+		global tf_listener
+		self.move_arm = arm_configuration.ArmConfiguration(tf_listener)
+	
+	
+	def execute(self, userdata):
+		self.move_arm.moveToConfiguration("zeroposition")
+		self.move_arm.moveToConfiguration("pregrasp_back_init")
+		self.move_arm.moveToConfiguration("pregrasp_back")
+		
+		if (self.position == "front"):
+			target_pose = self.move_arm._createPose(0.033 + 0.024 - 0.235, 0.0, 0.11, 0, -math.pi + 0.2, 0, "arm_link_0")
+		else:
+			target_pose = self.move_arm._createPose(0.033 + 0.024 - 0.28, 0.0, 0.11, 0, -math.pi + 0.3, 0, "arm_link_0")
+		self.move_arm.moveToPose(target_pose)
+		
+		rospy.sleep(1.0)
+		self.move_arm.moveGripperOpen()
+		rospy.sleep(2.0)
+		
+		return "success"
+		
 
 
 class find_station(smach.State):
@@ -251,8 +300,13 @@ def main():
 	
 	with sm:
 		#smach.StateMachine.add('approach_start', approach_pose([0, 0, 0]), transitions={'success':'overall_success', 'failed':'overall_success'})
-		smach.StateMachine.add('identify_object', find_object(), transitions={'success':'grasp_object', 'no_object':'overall_failed'})
-		smach.StateMachine.add('grasp_object', grasp_object(), transitions={'success':'identify_object', 'failed':'overall_failed'})
+		smach.StateMachine.add('identify_object_red', find_object("red"), transitions={'success':'grasp_object_red', 'no_object':'overall_failed'})
+		smach.StateMachine.add('grasp_object_red', grasp_object(), transitions={'success':'release_object_red', 'failed':'overall_failed'})
+		smach.StateMachine.add('release_object_red', release_object("front"), transitions={'success':'identify_object_red', 'failed':'overall_failed'})
+		#smach.StateMachine.add('identify_object_yellow_1', find_object("yellow"), transitions={'success':'grasp_object_yellow_1', 'no_object':'overall_failed'})
+		#smach.StateMachine.add('grasp_object_yellow_1', grasp_object(), transitions={'success':'identify_object_yellow_2', 'failed':'overall_failed'})
+		#smach.StateMachine.add('identify_object_yellow_2', find_object("yellow"), transitions={'success':'grasp_object_yellow_2', 'no_object':'overall_failed'})
+		#smach.StateMachine.add('grasp_object_yellow_2', grasp_object(), transitions={'success':'identify_object_red', 'failed':'overall_failed'})
 		
 		#smach.StateMachine.add('find_station_start', find_station("start"), transitions={'success':'find_station_auxiliary', 'no_object':'overall_success'})
 		#smach.StateMachine.add('find_station_auxiliary', find_station("auxiliary"), transitions={'success':'find_station_goal', 'no_object':'overall_success'})
