@@ -1,0 +1,33 @@
+<package>
+  <description brief="imachines2">
+
+     imachines2
+
+  </description>
+  <author>daniel</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/imachines2</url>
+
+  <depend package="roscpp"/>
+  <depend package="rospy"/>
+  <depend package="std_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="opencv2"/>
+  <depend package="cv_bridge"/>
+  <depend package="roscpp"/>
+  <depend package="image_transport"/>  
+
+  <depend package="actionlib"/>
+  <depend package="actionlib_msgs"/>
+  <depend package="move_base_msgs"/>
+  <depend package="brics_actuator"/>
+  <depend package="sensor_msgs"/>
+  <depend package="tf"/>
+  <depend package="kinematics_msgs"/>
+  <depend package="control_msgs"/>
+  <depend package="youbot_arm_helper"/>
+
+</package>
+
+
