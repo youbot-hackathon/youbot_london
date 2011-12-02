@@ -1,0 +1,101 @@
+Node [/image_Analyzer]
+
+Searches Images for blobs.
+Makes some assumptions!!:
+ - Blobs are "red", "green", or "blue"
+ - Distance of the camera to the cubes is 13cm
+ - use the same cubes as we did (the same blue ones)
+
+
+Needs cvblob-library :
+http://code.google.com/p/cvblob/downloads/detail?name=cvblob-0.10.3-doc.tgz
+
+BEWARE! Somewhere in the imageanalysis is a memoryleak, so we added a start/stop mechanism:
+- start node
+- send msg to /frame_control to enable the node for X frame
+-- example:  rostopic pub /frame_control imachines2/frames 1  (sample one frame)
+
+- node then subscribes for /image_raw, analyzes the given number of frames and publishes the found cubes in /cubelist, afterwards waits for another activation
+
+Publications: 
+ * /rosout [rosgraph_msgs/Log]
+
+ * /cubelist [imachines2/cubelist]
+list of cubes: 
+  - xyz-coordinates within a righthandside - coordinatesystem with origin camera. unit: m
+  - color: string which is red, blue or green
+
+
+Subscriptions: 
+ * /frame_control [imachines2/frames]
+control mechanism to activate/deactivate imageanalysis
+ * /image_raw [sensor_msgs/Image]
+image source
+
+Services: 
+ * /image_Analyzer/set_logger_level
+ * /image_Analyzer/get_loggers
+
+
+
+#################
+
+- The script arm_control.py will receive the cubelist message, calculate the offset of the coordinates and control the arm to the desired position.
+The script will only grasp a blue cube!
+
+
+## Start##
+(the robot should in front of the box, box heigh is 10cm and the distance about 12-13cm)
+
+- start the normal youbot_oodl stuff
+- launch other nodes:
+	roslaunch youbot_camera camera_node.launch
+	roslaunch youbot_arm_navigation arm_navigation.launch
+	roslaunch youbot_joint_trajectory_action youbot_joint_trajectory_action.launch 
+	roslaunch youbot_scenarios arm_configurations.launch
+	
+- launch the own nodes:
+	rosrun rosrun imachines2 imageanalyzer
+	rosrun imachines2 arm_control.py
+
+- start one detection step
+	rostopic pub /frame_control imachines2/frames 1
+
+
+
+### Modification ###
+
+It might be that you need to modify some parameters:
+
+- offset:  arm_control.py (line 27 to 30)
+	## Offset between camara frame and target frame
+	offset_x = 0.17
+	offset_y = -0.005
+	offset_z = 0.05
+
+- allowed blob size: ColorBlobDetector.cpp (line 17...)
+	const int MIN_AREA = 15000;
+	const int MAX_AREA = 37000
+
+- change the cube color: arm_control.py (line 50)
+
+	if (c.color == "blue"):
+
+	#could be "red", "green"
+
+
+- color detection: (hope yo do not need to modify this) ColorBlobDetector.cpp (line 60...)
+	//set the color detection borders
+      switch (color)
+      {
+        case RED:
+          f = 255 * ((r > 0.1 + g) && (r > 0.1 + b));
+          break;
+        case BLUE:
+          f = 255 * ((b > 0.1 + g) && (b > 0.1 + r));
+          break;
+        case GREEN:
+          f = 255 * ((g > 0.03 + b) && (g > 0.03 + r));
+          break;
+
+      }
