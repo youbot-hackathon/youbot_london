@@ -13,5 +13,7 @@
 	
 	<include file="$(find youbot_navigation_common)/launch/base_front_hokuyo_node.launch" />
 	<include file="$(find youbot_navigation_local)/launch/move_base_local.launch" />
+	
+	<include file="$(find youbot_search)/launch/navigation_search.launch" />
 
 </launch>

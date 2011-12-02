@@ -13,11 +13,12 @@ import tower_of_hanoi_sdk.msg
 import tf
 import geometry_msgs.msg
 import arm_configuration
+import std_srvs.srv
 
 
-world_frame = "/openni_rgb_optical_frame"
+world_frame = "/base_link"
 tf_listener = 0
-
+pose = [0, 0, 0]
 
 
 class approach_pose(smach.State):
@@ -35,27 +36,17 @@ class approach_pose(smach.State):
 
 
 	def execute(self, userdata):
-		# determine target position
-		if self.pose != "":
-			pose = self.pose
-		elif type(userdata.pose) is str:
-			pose = userdata.pose
-		elif type(userdata.pose) is list:
-			pose = []
-			pose.append(userdata.pose[0])
-			pose.append(userdata.pose[1])
-			pose.append(userdata.pose[2])
-		else: # this should never happen
-			userdata.message = []
-			userdata.message.append(5)
-			userdata.message.append("Invalid userdata 'pose'")
-			userdata.message.append(userdata.pose)
-			return 'failed'
+		print userdata.pose
+		
+		pose = []
+		pose.append(userdata.pose[0])
+		pose.append(userdata.pose[1])
+		pose.append(userdata.pose[2])
 		
 		self.move_base.wait_for_server()
 		
 		goal = move_base_msgs.msg.MoveBaseGoal()
-		goal.target_pose.header.frame_id = "map"
+		goal.target_pose.header.frame_id = "odom"
 		goal.target_pose.header.stamp = rospy.Time.now()
 		goal.target_pose.pose.position.x = pose[0]
 		goal.target_pose.pose.position.y = pose[1]
@@ -178,53 +169,74 @@ class find_object(smach.State):
 class find_station(smach.State):
 
 	def __init__(self, station):
-		smach.State.__init__(self, outcomes=['success', 'no_object'])
+		smach.State.__init__(self, outcomes=['success', 'no_object'], input_keys=['pose'], output_keys=['pose', 'start'])
 		self.object_list_srv = rospy.ServiceProxy('/youbot_3d_world_model/getSceneObjects', tower_of_hanoi_sdk.srv.GetSceneObjects)
+		self.move_base_srv = rospy.ServiceProxy('/navigate_search', std_srvs.srv.Empty)
 		self.station = station
 		
 		global tf_listener
 		self.move_arm = arm_configuration.ArmConfiguration(tf_listener)
+
 
 	def execute(self, userdata):
 		self.move_arm.moveToConfiguration("zeroposition")
 		self.move_arm.moveToConfiguration("kinect_left_init")
 		self.move_arm.moveToConfiguration("kinect_left")
 		
+		rospy.sleep(3.0)
+		
+		found_station = False
+		rospy.wait_for_service('/navigate_search')
 		rospy.wait_for_service('/youbot_3d_world_model/getSceneObjects', 10)
-		attrib = tower_of_hanoi_sdk.msg.Attribute()
-		attrib.key = "name"
-		attrib.value = self.station
-		req = tower_of_hanoi_sdk.srv.GetSceneObjectsRequest()
-		req.attributes.append(attrib)
 		
-		resp = self.object_list_srv(req)
+		while (not found_station):
+			attrib = tower_of_hanoi_sdk.msg.Attribute()
+			attrib.key = "name"
+			attrib.value = self.station
+			req = tower_of_hanoi_sdk.srv.GetSceneObjectsRequest()
+			req.attributes.append(attrib)
+			
+			resp = self.object_list_srv(req)
+			
+			if (len(resp.results) > 0):
+				global tf_listener
+				
+				pose = geometry_msgs.msg.PoseStamped()
+				pose.header = resp.results[0].transform.header
+				pose.header.stamp -= rospy.Duration(0.5)
+				pose.pose.position = resp.results[0].transform.transform.translation
+				pose.pose.orientation = resp.results[0].transform.transform.rotation
+				world_pose = tf_listener.transformPose(world_frame, pose)
+				
+				world_pose.pose.position.x -= 0.45
+				
+				if (self.station == "start"):
+					userdata.start = world_pose
+					userdata.pose[0] = world_pose.pose.position.x
+					userdata.pose[1] = world_pose.pose.position.y
+					userdata.pose[2] = world_pose.pose.orientation.w
+				elif (self.station == "auxiliary"):
+					userdata.auxiliary = world_pose
+					userdata.pose[0] = world_pose.pose.position.x
+					userdata.pose[1] = world_pose.pose.position.y
+					userdata.pose[2] = world_pose.pose.orientation.w
+				elif (self.station == "goal"):
+					userdata.goal = world_pose
+					userdata.pose[0] = world_pose.pose.position.x
+					userdata.pose[1] = world_pose.pose.position.y
+					userdata.pose[2] = world_pose.pose.orientation.w
+				
+				found_station = True
+			
+			#if (not found_station):
+			#	self.move_base_srv()
 		
-		if (len(resp.results) > 0):
-			print resp.results[0]
-			
-			global tf_listener
-			
-			pose = geometry_msgs.msg.PoseStamped()
-			pose.header = resp.results[0].transform.header
-			pose.pose.position = resp.results[0].transform.transform.translation
-			pose.pose.orientation = resp.results[0].transform.transform.rotation
-			world_pose = tf_listener.transformPose(world_frame, pose)
-			
-			if (self.station == "start"):
-				userdata.start = world_pose
-			elif (self.station == "auxiliary"):
-				userdata.auxiliary = world_pose
-			elif (self.station == "goal"):
-				userdata.goal = world_pose
-			
-			result = 'success'			
-		else:
-			result = 'no_object'
+		print "Found marker at: ", world_pose.pose.position.x, world_pose.pose.position.y, world_pose.pose.orientation.w
 		
 		self.move_arm.moveToConfiguration("kinect_left_init")
-		self.move_arm.moveToConfiguration("zeroposition")
+		self.move_arm.moveToConfiguration("initposition")
 		
-		return result
+		return "success"
 
 
 
@@ -283,18 +295,6 @@ class release_object(smach.State):
 		rospy.sleep(2.0)
 		
 		return "success"
-		
-
-
-class find_station(smach.State):
-
-	def __init__(self, station):
-		smach.State.__init__(self, outcomes=['success', 'no_object'])
-		self.object_list_srv = rospy.ServiceProxy('/youbot_3d_world_model/getSceneObjects', tower_of_hanoi_sdk.srv.GetSceneObjects)
-		self.station = station
-		
-		global tf_listener
-		self.move_arm = arm_configuration.ArmConfiguration(tf_listener)
 
 
 
@@ -311,16 +311,27 @@ def main():
 	sm.userdata.auxiliary = 0
 	sm.userdata.goal = 0
 	sm.userdata.grasp_pose = 0
+	sm.userdata.pose = [0, 0, 0]
 	
 	with sm:
-		#smach.StateMachine.add('approach_start', approach_pose([0, 0, 0]), transitions={'success':'overall_success', 'failed':'overall_success'})
+		smach.StateMachine.add('find_station_start', find_station("start"), transitions={'success':'identify_object_red', 'no_object':'overall_success'})
+		#smach.StateMachine.add('approach_start', approach_pose("start"), transitions={'success':'find_station_start', 'failed':'overall_success'})
+		
 		smach.StateMachine.add('identify_object_red', find_object("red"), transitions={'success':'grasp_object_red', 'no_object':'overall_failed'})
 		smach.StateMachine.add('grasp_object_red', grasp_object(), transitions={'success':'release_object_red', 'failed':'overall_failed'})
-		smach.StateMachine.add('release_object_red', release_object("front"), transitions={'success':'identify_object_yellow_1', 'failed':'overall_failed'})
+		smach.StateMachine.add('release_object_red', release_object("front"), transitions={'success':'identify_object_green_1', 'failed':'overall_failed'})
 		
-		smach.StateMachine.add('identify_object_yellow_1', find_object("yellow"), transitions={'success':'grasp_object_yellow_1', 'no_object':'overall_failed'})
-		smach.StateMachine.add('grasp_object_yellow_1', grasp_object(), transitions={'success':'release_object_yellow_1', 'failed':'overall_failed'})
-		smach.StateMachine.add('release_object_yellow_1', release_object("rear"), transitions={'success':'identify_object_red', 'failed':'overall_failed'})
+		smach.StateMachine.add('identify_object_green_1', find_object("green"), transitions={'success':'grasp_object_green_1', 'no_object':'overall_failed'})
+		smach.StateMachine.add('grasp_object_green_1', grasp_object(), transitions={'success':'release_object_green_1', 'failed':'overall_failed'})
+		smach.StateMachine.add('release_object_green_1', release_object("rear"), transitions={'success':'identify_object_green_2', 'failed':'overall_failed'})
+		
+		smach.StateMachine.add('identify_object_green_2', find_object("green"), transitions={'success':'grasp_object_green_2', 'no_object':'overall_failed'})
+		smach.StateMachine.add('grasp_object_green_2', grasp_object(), transitions={'success':'release_object_green_2', 'failed':'overall_failed'})
+		smach.StateMachine.add('release_object_green_2', release_object("rear"), transitions={'success':'identify_object_red', 'failed':'overall_failed'})
+
+		#smach.StateMachine.add('identify_object_yellow_1', find_object("yellow"), transitions={'success':'grasp_object_yellow_1', 'no_object':'overall_failed'})
+		#smach.StateMachine.add('grasp_object_yellow_1', grasp_object(), transitions={'success':'release_object_yellow_1', 'failed':'overall_failed'})
+		#smach.StateMachine.add('release_object_yellow_1', release_object("rear"), transitions={'success':'identify_object_red', 'failed':'overall_failed'})
 		
 		#smach.StateMachine.add('identify_object_yellow_2', find_object("yellow"), transitions={'success':'grasp_object_yellow_2', 'no_object':'overall_failed'})
 		#smach.StateMachine.add('grasp_object_yellow_2', grasp_object(), transitions={'success':'identify_object_yellow_1', 'failed':'overall_failed'})

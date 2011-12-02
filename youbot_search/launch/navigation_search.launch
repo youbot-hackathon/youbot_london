@@ -3,10 +3,11 @@
 	
 	
 	<!-- Search and destroy -->
-	<node pkg="search_and_destroy" type="navigate_search" name="navigate_search" output="screen">
-		<param name="/move_base_node/max_vel_x" value="0.1"/>
-		<param name="/move_base_node/max_rotational_vel" value="0.1"/>
-
+	<node pkg="youbot_search" type="navigate_search" name="navigate_search" output="screen">
+		<param name="/move_base_node/max_vel_x" value="0.05"/>
+		<param name="/move_base_node/max_rotational_vel" value="0.05"/>
+		<param name="max_x" value="0.5" />
+		<param name="max_y" value="0.5" />
 	</node>
 	
 	

@@ -22,7 +22,9 @@
   <depend package="youbot_navigation_common" />
   <depend package="youbot_navigation_local" />
   <depend package="tower_of_hanoi_sdk" />
-  <depedn package="youbot_arm_helper" />
+  <depend package="youbot_arm_helper" />
+  <depend package="youbot_search" />
+  <depend package="std_msgs" />
 
 </package>
 
