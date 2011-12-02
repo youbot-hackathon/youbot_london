@@ -70,7 +70,7 @@ class ArmConfiguration:
             rospy.logerr("Service did not process request: %s", str(e))
         return (resp.solution.joint_state.position, resp.error_code.val == motion_planning_msgs.msg.ArmNavigationErrorCodes.SUCCESS)
         
-    def _createPose(self, x, y, z, roll, pitch, yaw):
+    def _createPose(self, x, y, z, roll, pitch, yaw, frame = "base_link"):
         pose = geometry_msgs.msg.PoseStamped()
         pose.pose.position.x = x
         pose.pose.position.y = y
@@ -80,7 +80,7 @@ class ArmConfiguration:
         pose.pose.orientation.y = quat[1]
         pose.pose.orientation.z = quat[2]
         pose.pose.orientation.w = quat[3]
-        pose.header.frame_id = "base_link"
+        pose.header.frame_id = frame
         pose.header.stamp = rospy.Time.now()  
         return pose
        
