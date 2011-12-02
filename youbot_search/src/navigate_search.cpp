@@ -17,7 +17,7 @@ bool nextgoal(std_srvs::Empty::Request  &req,
          std_srvs::Empty::Response &res)
 {
 	float random = ((float) rand()) / (float) RAND_MAX;
-	random = random*2 - 1;
+	random = random * 2 - 1;
 	ROS_INFO("random value = %f", random);
 	goal.target_pose.pose.position.x = random * max_x;
 	goal.target_pose.pose.position.y = random * max_y;
@@ -43,8 +43,8 @@ void odom_callback(const nav_msgs::Odometry::ConstPtr& data)
 
 int main(int argc, char** argv){
   ros::init(argc, argv, "navigate_search");
-  ac = new MoveBaseClient("move_base", true);
   
+  ac = new MoveBaseClient("move_base", true);
 
   while(!ac->waitForServer(ros::Duration(5.0))){
     ROS_INFO("Waiting for the move_base action server to come up");

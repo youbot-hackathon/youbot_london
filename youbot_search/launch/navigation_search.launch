@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+	
+	
+	<!-- Search and destroy -->
+	<node pkg="search_and_destroy" type="navigate_search" name="navigate_search" output="screen">
+		<param name="/move_base_node/max_vel_x" value="0.1"/>
+		<param name="/move_base_node/max_rotational_vel" value="0.1"/>
+
+	</node>
+	
+	
+	
+	
+</launch>
